@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.spring.dao.LockerDAO">
+	<select id="lockerDAO_read" resultType="com.spring.dto.LockerDTO">
+		SELECT
+			A.LOCKER_NO, 
+			A.MEMBER_NO,
+			B.MEMBER_ID AS LOCKER_ID,
+			B.MEMBER_NAME AS LOCKER_NAME,
+			B.MEMBER_PHONE AS LOCKER_PHONE,
+			B.MEMBER_EMAIL AS LOCKER_EMAIL,
+			B.MEMBER_STARTDATE AS LOCKER_STARTDATE, 
+			B.MEMBER_ENDDATE AS LOCKER_ENDDATE
+		FROM LOCKER A, MEMBER B
+		WHERE A.MEMBER_NO = B.MEMBER_NO AND LOCKER_NO = #{locker_no}
+	</select>
+	
+	<update id="lockerDAO_update">
+		UPDATE LOCKER
+		SET LOCKER_USE = 'Y', MEMBER_NO = #{member_no}
+		WHERE LOCKER_NO = #{locker_no} 
+	</update>
+	
+	<update id="modifyLocker">
+		UPDATE LOCKER
+		SET LOCKER_USE = 'N', MEMBER_NO = null
+		WHERE LOCKER_NO = #{locker_no} 
+	</update>
+	
+	
+	
+	<select id="lockerDAO_listSearch" resultType="com.spring.dto.LockerDTO">
+		<![CDATA[
+			SELECT
+				A.LOCKER_NO, 
+				B.MEMBER_ID AS LOCKER_ID,
+				B.MEMBER_STARTDATE AS LOCKER_STARTDATE, 
+				B.MEMBER_ENDDATE AS LOCKER_ENDDATE,
+				A.MEMBER_NO
+			FROM LOCKER A LEFT OUTER JOIN MEMBER B
+			ON A.MEMBER_NO = B.MEMBER_NO
+			WHERE A.LOCKER_NO > 0
+		]]>
+			<include refid="searchSQL"></include>
+		<![CDATA[
+			ORDER BY LOCKER_NO ASC
+			limit #{startPage}, #{numPerPage}
+		]]>
+	</select>
+	
+	<select id="lockerDAO_searchCount" resultType="int">
+		<![CDATA[
+			SELECT
+				COUNT(*)
+			FROM LOCKER A LEFT OUTER JOIN MEMBER B
+			ON A.MEMBER_NO = B.MEMBER_NO
+			WHERE A.LOCKER_NO > 0
+		]]>
+			<include refid="searchSQL"></include>
+	</select>
+	
+	<select id="countLocker" resultType="int">
+		<![CDATA[
+			SELECT
+				COUNT(1)
+			FROM LOCKER A LEFT OUTER JOIN MEMBER B
+			ON A.MEMBER_NO = B.MEMBER_NO
+			WHERE A.LOCKER_NO > 0
+			AND B.MEMBER_NO = #{member_no}
+			ORDER BY LOCKER_NO ASC
+		]]>
+	</select>
+	
+	<sql id="searchSQL">
+         <if test="searchType != ''">
+            <if test="searchType == 'S'.toString()">
+               and locker_no like CONCAT('%', #{keyword}, '%')
+            </if>
+            <if test="searchType == 'C'.toString()">
+               and B.member_id like CONCAT('%', #{keyword}, '%')
+            </if>
+<!--             <if test='searchType == "W"'> -->
+<!--                and member_phone like CONCAT('%', #{keyword}, '%') -->
+<!--             </if> -->
+         </if>
+         <if test="searchType == ''">
+           	   and (locker_no like CONCAT('%', #{keyword}, '%')
+               or B.member_id like CONCAT('%', #{keyword}, '%'))
+         </if>         
+   </sql>
+
+
+</mapper>

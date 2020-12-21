@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.spring.dao.MessageDAO">
+	<select id="messageDAO_read" resultType="com.spring.dto.MessageDTO">
+		SELECT A.MESSAGE_NO, A.MESSAGE_SEND_NO, A.MESSAGE_RECEVICE_NO, A.MESSAGE_TITLE, A.MESSAGE_CONTENT, B.MEMBER_ID AS MESSAGE_ID, A.MESSAGE_DATE
+		FROM MESSAGE A , MEMBER B
+		WHERE A.MESSAGE_SEND_NO = B.MEMBER_NO AND MESSAGE_NO = #{message_no}
+	</select>
+	
+	<select id="messageDAO_sendread" resultType="com.spring.dto.MessageDTO">
+		SELECT A.MESSAGE_NO, A.MESSAGE_SEND_NO, A.MESSAGE_RECEVICE_NO, A.MESSAGE_TITLE, A.MESSAGE_CONTENT, B.MEMBER_ID AS MESSAGE_ID, A.MESSAGE_DATE
+		FROM MESSAGE A , MEMBER B
+		WHERE A.MESSAGE_RECEVICE_NO = B.MEMBER_NO AND MESSAGE_NO = #{message_no}
+	</select>
+	
+	<insert id="messageDAO_insert">
+		<selectKey resultType="int" keyProperty="message_no" order="BEFORE">
+			SELECT IFNULL(MAX(MESSAGE_NO), 0) + 1 AS MESSAGE_NO FROM MESSAGE
+		</selectKey>
+			INSERT INTO MESSAGE
+			(MESSAGE_NO, MESSAGE_SEND_NO, MESSAGE_RECEVICE_NO, MESSAGE_TITLE, MESSAGE_CONTENT, MESSAGE_DATE)
+			VALUES(#{message_no}, #{message_send_no}, #{message_recevice_no}, #{message_title}, #{message_content}, current_timestamp)
+	</insert>
+	
+	<delete id="messageDAO_delete">
+		DELETE FROM MESSAGE WHERE MESSAGE_NO = #{message_no}
+	</delete>
+	
+	<select id="messageDAO_listPaging" resultType="com.spring.dto.MessageDTO">
+		<![CDATA[
+			SELECT MESSAGE_NO, MESSAGE_SEND_NO, MESSAGE_RECEVICE_NO, MESSAGE_TITLE, MESSAGE_CONTENT, MESSAGE_DATE
+			FROM MESSAGE
+			WHERE MESSAGE_NO > 0
+			ORDER BY MESSAGE_NO DESC, MESSAGE_DATE DESC
+			limit #{page}, 10;
+		]]>
+	</select>
+	
+	<select id="messageDAO_listCriteria" resultType="com.spring.dto.MessageDTO">
+		<![CDATA[
+			SELECT MESSAGE_NO, MESSAGE_SEND_NO, MESSAGE_RECEVICE_NO, MESSAGE_TITLE, MESSAGE_CONTENT, MESSAGE_DATE
+			FROM MESSAGE
+			WHERE MESSAGE_NO > 0
+			ORDER BY MESSAGE_NO DESC, MESSAGE_DATE DESC
+			limit #{startPage}, #{numPerPage}
+		]]>
+	</select>
+	
+	<select id="messageDAO_countData" resultType="int">
+		<![CDATA[
+			SELECT COUNT(MESSAGE_NO) FROM MESSAGE
+			WHERE MESSAGE_NO > 0
+		]]>
+	</select>
+	
+	<select id="messageDAO_listSearch" resultType="com.spring.dto.MessageDTO">
+		<![CDATA[
+			SELECT
+				A.MESSAGE_NO,
+				A.MESSAGE_SEND_NO,
+				A.MESSAGE_RECEVICE_NO,
+				A.MESSAGE_TITLE,
+				A.MESSAGE_CONTENT,
+				B.MEMBER_ID AS MESSAGE_ID,
+				A.MESSAGE_DATE
+			FROM MESSAGE A , MEMBER B
+			WHERE A.MESSAGE_NO > 0
+		  	AND A.MESSAGE_SEND_NO = B.MEMBER_NO 
+		  	AND A.MESSAGE_RECEVICE_NO = #{member_no}
+		]]>
+		<include refid="searchSQL"></include>
+		<![CDATA[
+			ORDER BY A.MESSAGE_NO DESC, A.MESSAGE_DATE DESC
+			limit #{startPage}, #{numPerPage}
+		]]>
+	</select>
+	
+	<select id="messageDAO_searchCountData" resultType="int">
+		<![CDATA[
+			SELECT 
+				COUNT(MESSAGE_NO) 
+			FROM MESSAGE A , MEMBER B
+			WHERE MESSAGE_NO > 0 
+			AND A.MESSAGE_SEND_NO = B.MEMBER_NO 
+			AND MESSAGE_RECEVICE_NO = #{member_no}
+		]]>
+		<include refid="searchSQL"></include>
+	</select>
+	
+	<!-- 회원정보 팝업창에 read -->
+	<select id="memberDAO_read" resultType="com.spring.dto.MemberDTO">
+   		SELECT MEMBER_NO, MEMBER_ID, MEMBER_NAME, MEMBER_EMAIL FROM MEMBER WHERE 1=1
+   		<include refid="memberSearchSQL"></include>
+   		ORDER BY MEMBER_NO DESC
+   </select>
+   
+   <!-- 회원정보 카운트 -->
+   <select id="memberDAO_membercountData" resultType="int">
+		<![CDATA[
+			SELECT COUNT(MEMBER_NO) FROM MEMBER
+			WHERE MEMBER_NO > 0
+		]]>
+		<include refid="memberSearchSQL"></include>
+	</select>
+	
+	<select id="messageDAO_sendList" resultType="com.spring.dto.MessageDTO">
+		<![CDATA[
+			SELECT
+				A.MESSAGE_NO,
+				A.MESSAGE_SEND_NO,
+				A.MESSAGE_RECEVICE_NO,
+				A.MESSAGE_TITLE,
+				A.MESSAGE_CONTENT,
+				B.MEMBER_ID AS MESSAGE_ID,
+				A.MESSAGE_DATE
+			FROM MESSAGE A , MEMBER B
+			WHERE A.MESSAGE_NO > 0
+			AND A.MESSAGE_RECEVICE_NO = B.MEMBER_NO 
+			AND MESSAGE_SEND_NO = #{member_no}
+		]]>
+			<include refid="searchSQL"></include>
+		<![CDATA[
+			ORDER BY A.MESSAGE_NO DESC, A.MESSAGE_DATE DESC
+			limit #{startPage}, #{numPerPage}
+		]]>
+	</select>
+	
+	<select id="messageDAO_sendCountData" resultType="int">
+		<![CDATA[
+			SELECT 
+				COUNT(MESSAGE_NO) 
+			FROM MESSAGE A , MEMBER B
+			WHERE MESSAGE_NO > 0 
+			AND A.MESSAGE_RECEVICE_NO = B.MEMBER_NO 
+			AND MESSAGE_send_NO = #{member_no}
+		]]>
+			<include refid="searchSQL"></include>
+	</select>
+	
+	<sql id="searchSQL">
+         <if test="searchType != ''">
+            <if test="searchType == 'S'.toString()">
+               and message_title like CONCAT('%', #{keyword}, '%')
+            </if>
+            <if test="searchType == 'C'.toString()">
+               and message_content like CONCAT('%', #{keyword}, '%')
+            </if>
+            <if test='searchType == "W"'>
+               and B.member_id like CONCAT('%', #{keyword}, '%')
+            </if>
+         </if>
+         <if test="searchType == ''">
+           	   and (message_title like CONCAT('%', #{keyword}, '%')
+               or message_content like CONCAT('%', #{keyword}, '%')
+         	   or B.member_id like CONCAT('%', #{keyword}, '%'))            
+         </if>         
+   </sql>
+   
+   <sql id="memberSearchSQL">
+         <if test="searchType != ''">
+            <if test="searchType == 'S'.toString()">
+               and member_id like CONCAT('%', #{keyword}, '%')
+            </if>
+            <if test="searchType == 'C'.toString()">
+               and member_name like CONCAT('%', #{keyword}, '%')
+            </if>
+            <if test="searchType == 'W'.toString()">
+               and member_email like CONCAT('%', #{keyword}, '%')
+            </if>
+         </if>
+         <if test="searchType == ''">         	
+               and (member_id like CONCAT('%', #{keyword}, '%')
+               or member_name like CONCAT('%', #{keyword}, '%')
+               or member_email like CONCAT('%', #{keyword}, '%'))            
+         </if>         
+   </sql>
+
+</mapper>
+
+
+
+
+
+
+
+
+
+

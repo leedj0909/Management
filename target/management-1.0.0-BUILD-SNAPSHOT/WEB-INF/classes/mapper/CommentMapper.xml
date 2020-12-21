@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.spring.dao.CommentDAO">
+	<!-- 댓글 조회 -->
+	<select id="coList" resultType="com.spring.dto.CommentDTO">
+		select comment_no, comment_content, comment_writer, comment_regdate, member_no
+		from comment
+		where board_no = #{board_no}
+		order by comment_no desc
+	</select>
+	
+	<insert id="coWrite">
+		<selectKey resultType="int" keyProperty="comment_no" order="BEFORE">
+			SELECT IFNULL(MAX(COMMENT_NO), 0) + 1 AS COMMENT_NO FROM COMMENT
+		</selectKey>
+		insert into comment (comment_no, comment_content, comment_writer, member_no, board_no, comment_regdate, comment_updateDate)
+		values (#{comment_no}, #{comment_content}, #{comment_writer}, #{member_no}, #{board_no}, now(), sysdate())
+	</insert>
+	
+	<update id="coModify">
+		update comment
+		set comment_content = #{comment_content}, comment_updateDate = sysdate()
+		where comment_no = #{comment_no}
+	</update>
+	
+	<delete id="coDelete">
+		delete from comment where comment_no = #{comment_no}
+	</delete>
+
+</mapper>

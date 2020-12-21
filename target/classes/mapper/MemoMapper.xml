@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- memo 테이블 mapper 파일 -->
+<mapper namespace="com.spring.dao.MemoDAO">
+
+	<insert id="insertMemo">
+		<selectKey resultType="int" keyProperty="memo_no" order="BEFORE">
+			SELECT IFNULL(MAX(MEMO_NO), 0) + 1 AS MEMO_NO FROM MEMO
+		</selectKey>
+		<![CDATA[
+			INSERT INTO MEMO
+			(MEMO_NO,MEMO_TITLE,MEMO_STARTDATE,MEMO_ENDDATE,MEMBER_NO)
+			VALUES
+			(#{memo_no},#{memo_title},#{memo_startdate},#{memo_enddate},#{member_no})
+		]]>
+	</insert>
+	
+	<select id="findmemoList" resultType="com.spring.dto.MemoDTO">
+		<![CDATA[
+			SELECT 
+			MEMO_NO,MEMO_TITLE,MEMO_CONTENT,MEMO_STARTDATE,MEMBER_NO,MEMO_ENDDATE
+			FROM MEMO
+			WHERE MEMBER_NO = #{member_no}
+		]]>
+	</select>
+
+</mapper>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+ 
+<decorators defaultdir="/WEB-INF/sitemesh">
+ 
+ 	<!-- 사이트메쉬를 사용하지 않겠다 -->
+<!--     <excludes> -->
+<!--       <pattern>/management.do</pattern> -->
+<!--     </excludes>     -->
+    
+<!--     <decorator name="layout" page="layout.jsp"> -->
+<!--        <pattern>/*</pattern> -->
+<!--     </decorator>   -->
+    
+<!--     <decorator name="sitemeshSamplePopup" page="main/management.jsp"> -->
+<!--        <pattern>*/*</pattern> -->
+<!--     </decorator>   -->
+      
+<!--     <decorator name="header" page="sitemesh-header.jsp"/> -->
+<!--     <decorator name="footer" page="sitemesh-footer.jsp"/> -->
+    
+</decorators>
+

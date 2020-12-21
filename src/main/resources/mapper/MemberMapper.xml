@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.spring.dao.MemberDAO">
+	<select id="memberDAO_memberRead" resultType="com.spring.dto.MemberDTO">
+		SELECT MEMBER_NO, MEMBER_ID, MEMBER_NAME, MEMBER_GANDER, MEMBER_BIRTH_YEAR, MEMBER_BIRTH_MONTH, MEMBER_BIRTH_DATE, MEMBER_POSTCODE, MEMBER_ROADADDRESS, MEMBER_DETAILADDRESS, MEMBER_PHONE, MEMBER_EMAIL, MEMBER_STARTDATE, MEMBER_ENDDATE
+		FROM MEMBER 
+		WHERE MEMBER_NO = #{member_no}
+	</select>
+	
+	<update id="memberDAO_memeberUpdate">
+		UPDATE MEMBER
+		SET MEMBER_STARTDATE = #{member_startdate}, MEMBER_ENDDATE = #{member_enddate}
+		WHERE MEMBER_NO = #{member_no}
+	</update>
+	
+	<select id="memberDAO_listSearch" resultType="com.spring.dto.MemberDTO">
+		<![CDATA[
+			SELECT MEMBER_NO, MEMBER_ID, MEMBER_PASSWORD, MEMBER_NAME, MEMBER_GANDER, MEMBER_BIRTH_YEAR, MEMBER_BIRTH_MONTH, MEMBER_BIRTH_DATE, MEMBER_POSTCODE, MEMBER_ROADADDRESS, MEMBER_DETAILADDRESS, MEMBER_PHONE, MEMBER_EMAIL, MEMBER_REGDATE, MEMBER_CODE, MEMBER_STARTDATE, MEMBER_ENDDATE
+			FROM MEMBER
+			WHERE MEMBER_NO > 0
+		]]>
+			<include refid="searchSQL"></include>
+		<![CDATA[
+			ORDER BY MEMBER_NO DESC, MEMBER_REGDATE DESC
+			limit #{startPage}, #{numPerPage}
+		]]>
+		
+	</select>
+	
+	<select id="memberDAO_searchCountData" resultType="int">
+		<![CDATA[
+			SELECT COUNT(MEMBER_NO) FROM MEMBER
+			WHERE MEMBER_NO > 0
+		]]>
+		<include refid="searchSQL"></include>
+	</select>
+	
+	<sql id="searchSQL">
+         <if test="searchType != ''">
+            <if test="searchType == 'S'.toString()">
+               and member_id like CONCAT('%', #{keyword}, '%')
+            </if>
+            <if test="searchType == 'C'.toString()">
+               and member_name like CONCAT('%', #{keyword}, '%')
+            </if>
+            <if test='searchType == "W"'>
+               and member_phone like CONCAT('%', #{keyword}, '%')
+            </if>
+         </if>
+         <if test="searchType == ''">
+           	   and (member_id like CONCAT('%', #{keyword}, '%')
+               or member_name like CONCAT('%', #{keyword}, '%')
+         	   or member_phone like CONCAT('%', #{keyword}, '%'))            
+         </if>         
+   </sql>
+   
+</mapper>

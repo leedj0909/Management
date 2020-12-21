@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.spring.dao.BoardDAO">
+	<select id="read" resultType="com.spring.dto.BoardDTO">
+		select board_no, board_title, board_content, board_writer, board_regdate, board_readcnt, board_gubunCode, member_no from board
+		where board_no = #{board_no}
+	</select>
+	
+	
+	<insert id="insert">
+		<selectKey resultType="int" keyProperty="board_no" order="BEFORE">
+			SELECT IFNULL(MAX(BOARD_NO), 0) + 1 AS BOARD_NO FROM BOARD
+		</selectKey>
+			insert into board (board_no, board_title, board_content, board_writer, board_regdate, board_readcnt, board_gubunCode, member_no)
+			values (#{board_no}, #{board_title}, #{board_content}, #{board_writer}, now(), 0, #{board_gubunCode}, #{member_no})
+	</insert>
+	
+	<update id="update">
+		update board
+		set board_title = #{board_title}, board_content = #{board_content}
+		where board_no = #{board_no}
+	</update>  
+	
+	<update id="board_readcnt" parameterType="int">
+		update board set board_readcnt = board_readcnt + 1 where board_no = #{board_no}
+	</update>
+	
+	<delete id="delete">
+		delete from board where board_no = #{board_no}
+	</delete>
+	
+	<select id="listPaging" resultType="com.spring.dto.BoardDTO">
+		<![CDATA[
+			select board_no, board_title, board_content, board_writer, board_regdate, board_readcnt, board_gubunCode, member_no from board
+			where board_no > 0
+			order by board_no desc, board_regdate desc
+			limit #{page}, 10
+		]]>
+	</select>
+	
+	<select id="listCriteria" resultType="com.spring.dto.BoardDTO">
+		<![CDATA[
+			select board_no, board_title, board_content, board_writer, board_regdate, board_readcnt, board_gubunCode, member_no from board
+			where board_no > 0
+			order by board_no desc, board_regdate desc
+			limit #{startPage}, #{numPerPage}
+		]]>
+	</select>
+	
+	<select id="countData" resultType="int">
+		<![CDATA[
+			select count(board_no) from board
+			where board_no > 0
+		]]>
+	</select>
+	
+	<select id="listSearch" resultType="com.spring.dto.BoardDTO">
+		<![CDATA[
+			select board_no, board_title, board_content, board_writer, board_regdate, board_readcnt, board_gubunCode, member_no from board
+			where board_no > 0
+			and board_gubuncode = #{board_gubunCode}
+		]]>
+			<if test='board_gubunCode == "P"'>
+				and member_no = #{member_no}
+			</if>
+			<include refid="searchSQL"></include>
+		<![CDATA[
+			order by board_no desc, board_regdate desc
+			limit #{startPage}, #{numPerPage}
+		]]>
+	</select>
+	
+	<select id="searchCountData" resultType="int">
+		<![CDATA[
+			select count(board_no) from board
+			where board_no > 0
+			and board_gubuncode = #{board_gubunCode}
+		]]>
+			<if test='board_gubunCode == "P"'>
+				and member_no = #{member_no}
+			</if>
+			<include refid="searchSQL"></include>
+	</select>
+	
+	<sql id="searchSQL">
+         <if test="searchType != ''">
+            <if test='searchType == "S"'>
+               and board_title like CONCAT('%', #{keyword}, '%')
+            </if>
+            <if test='searchType == "C"'>
+               and board_content like CONCAT('%', #{keyword}, '%')
+            </if>
+            <if test='searchType == "W"'>
+               and board_writer like CONCAT('%', #{keyword}, '%')
+            </if>
+         </if>
+         <if test="searchType == ''">         	
+            and (board_title like CONCAT('%', #{keyword}, '%')
+               or board_content like CONCAT('%', #{keyword}, '%')
+               or board_writer like CONCAT('%', #{keyword}, '%'))            
+         </if>         
+   </sql>
+
+	<!-- Ctrl + Shift + /  => 주석 처리
+	Ctrl + Shift + \  => 주석 해제 -->
+	
+	<!-- <select id="personListSearch" resultType="com.spring.dto.BoardDTO">
+		<![CDATA[
+			select board_no, board_title, board_content, board_writer, board_regdate, board_readcnt, board_gubunCode, member_no from board
+			where board_no > 0
+			and board_gubuncode = #{board_gubunCode}
+			AND MEMBER_NO = #{member_no}
+		]]>
+			<if test='board_gubunCode == "P"'>
+				AND MEMBER_NO = #{member_no}
+			</if>
+			<include refid="searchSQL"></include>
+		<![CDATA[
+			order by board_no desc, board_regdate desc
+			limit #{startPage}, #{numPerPage}
+		]]>
+	</select>
+	
+	<select id="personSearchCountData" resultType="int">
+		<![CDATA[
+			select count(board_no) from board
+			where board_no > 0
+			and board_gubuncode = #{board_gubunCode}
+			AND MEMBER_NO = #{member_no}
+		]]>
+		<include refid="searchSQL"></include>
+	</select> -->
+</mapper>
+

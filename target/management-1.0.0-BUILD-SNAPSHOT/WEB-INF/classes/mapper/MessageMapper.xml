@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.spring.dao.MessageDAO">
+	<select id="read" resultType="com.spring.dto.MessageDTO">
+		select message_no, message_send_no, message_recevice_no, message_title, message_content, massage_id, message_date
+		from message
+		where message_recevice_no = #{message_recevice_no}
+	</select>
+	
+	<insert id="insert">
+		<selectKey resultType="int" keyProperty="message_no" order="BEFORE">
+			SELECT IFNULL(MAX(MESSAGE_NO), 0) + 1 AS MESSAGE_NO FROM MESSAGE
+		</selectKey>
+			insert into message
+			(message_no, message_send_no, message_recevice_no, message_title, message_content, message_date)
+			values(#{message_no}, #{message_send_no}, #{message_recevice_no}, #{message_title}, #{message_content}, current_timestamp)
+	</insert>
+	
+	<delete id="delete">
+		delete from message where message_no = #{message_no}
+	</delete>
+	
+	<select id="listPaging" resultType="com.spring.dto.MessageDTO">
+		<![CDATA[
+			select message_no, message_send_no, message_recevice_no, message_title, message_content, message_date
+			from message
+			where message_no > 0
+			order by message_no desc, message_date desc
+			limit #{page}, 10;
+		]]>
+	</select>
+	
+	<select id="listCriteria" resultType="com.spring.dto.MessageDTO">
+		<![CDATA[
+			select message_no, message_send_no, message_recevice_no, message_title, message_content, message_date
+			from message
+			where message_no > 0
+			order by message_no desc, message_date desc
+			limit #{startPage}, #{numPerPage}
+		]]>
+	</select>
+	
+	<select id="countData" resultType="int">
+		<![CDATA[
+			select count(message_no) from message
+			where message_no > 0
+		]]>
+	</select>
+	
+	<select id="listSearch" resultType="com.spring.dto.MessageDTO">
+		<![CDATA[
+			select message_no, message_send_no, message_recevice_no, message_title, message_content, message_date
+			from message
+			where message_no > 0 and message_recevice_no = #{message_recevice_no}
+		]]>
+		<include refid="searchSQL"></include>
+		<![CDATA[
+			order by message_no desc, message_date desc
+			limit #{startPage}, #{numPerPage}
+		]]>
+	</select>
+	
+	<select id="searchCountData" resultType="int">
+		<![CDATA[
+			select count(message_no) from message
+			where message_no > 0 and message_recevice_no = #{message_recevice_no}
+		]]>
+		<include refid="searchSQL"></include>
+	</select>
+	
+	<sql id="searchSQL">
+         <if test="searchType != ''">
+            <if test='searchType == "S"'>
+               and message_title like CONCAT('%', #{keyword}, '%')
+            </if>
+            <if test='searchType == "C"'>
+               and message_content like CONCAT('%', #{keyword}, '%')
+            </if>
+            <if test='searchType == "W"'>
+               and message_id like CONCAT('%', #{keyword}, '%')
+            </if>
+         </if>
+         <if test="searchType == ''">         	
+            and (message_title like CONCAT('%', #{keyword}, '%')
+               or message_content like CONCAT('%', #{keyword}, '%')
+               or message_id like CONCAT('%', #{keyword}, '%'))            
+         </if>         
+   </sql>
+
+</mapper>
+
+
+
+
+
+
+
+
+
+
